@@ -16,7 +16,7 @@ This package provides utilities for ensuring that your code is nicely formatted 
 * `pretty-format-java`
 * `pretty-format-kotlin`
 * `pretty-format-rust`
-* `pretty-format-toml`
+* `pretty-format-toml` ⚠️ removes comments under certain conditions
 * `pretty-format-yaml`
 
 ⚠: the list above could be out-of-sync respect the exposed pre-commit hooks.
@@ -127,7 +127,7 @@ To work-around such scenario you have 2 approaches available:
 
     Side note: We're not embedding the Dockerfile in the repository as this is more a workaround to support whom cannot of installing a more recent Java version on the library-user system and as such we are not planning to fully support this other than giving possible solutions (Java 11+ was released in September, 2018).
 
-### How to use pre-downloaded [google-java-format jar](https://github.com/google/google-java-format) file?
+### How to use a pre-downloaded [google-java-format jar](https://github.com/google/google-java-format) file?
 
 You can pass the jar file path to `--google-java-formatter-jar` argument:
 
@@ -139,7 +139,71 @@ You can pass the jar file path to `--google-java-formatter-jar` argument:
         args: [--google-java-formatter-jar=/usr/bin/google-java-format-1.17.0-all-deps.jar]
 ```
 
-### How to use ktfmt instead of ktlint
+### How to use a pre-downloaded [ktlint jar](https://github.com/pinterest/ktlint) file?
+
+You can pass the jar file path to the `--ktlint-jar` argument:
+
+```yaml
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: ...
+    hooks:
+      - id: pretty-format-kotlin
+        args: [--ktlint-jar=/usr/bin/ktlint.jar]
+```
+
+### How to use a pre-downloaded [ktfmt jar](https://github.com/facebook/ktfmt) file?
+
+You can pass the jar file path to the `--ktfmt-jar` argument:
+
+```yaml
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: ...
+    hooks:
+      - id: pretty-format-kotlin
+        args: [--ktfmt, --ktfmt-jar=/usr/bin/ktfmt-0.47.jar]
+```
+
+### How can I verify the checksum of the jar?
+
+_Only supported for the `pretty-format-java` and `pretty-format-kotlin-hooks`_
+
+Use the corresponding `[...]-checksum` argument
+
+```yaml
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: ...
+    hooks:
+      - id: pretty-format-java
+        args: [
+          --google-java-formatter-version=1.17.0,
+          --formatter-jar-checksum=33068bbbdce1099982ec1171f5e202898eb35f2919cf486141e439fc6e3a4203,
+        ]
+```
+
+```yaml
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: ...
+    hooks:
+      - id: pretty-format-kotlin
+        args: [
+          --ktlint-version=1.2.1,
+          --formatter-jar-checksum=2e28cf46c27d38076bf63beeba0bdef6a845688d6c5dccd26505ce876094eb92,
+        ]
+```
+
+```yaml
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: ...
+    hooks:
+      - id: pretty-format-kotlin
+        args: [
+          --ktfmt,
+          --ktfmt-version=0.47,
+          --formatter-jar-checksum=af61161faacd74ac56374e0b43003dbe742ddc0d6a7e2c1fe43e15415e65ffbd,
+        ]
+```
+
+### How to use ktfmt instead of ktlint?
 
 ```yaml
   - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks

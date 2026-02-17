@@ -1,11 +1,13 @@
-# -*- coding: utf-8 -*-
 import argparse
 import json
 import sys
 import typing
 
+from packaging.version import Version
+
 from language_formatters_pre_commit_hooks import _get_default_version
 from language_formatters_pre_commit_hooks.pre_conditions import java_required
+from language_formatters_pre_commit_hooks.utils import does_checksum_match
 from language_formatters_pre_commit_hooks.utils import download_url
 from language_formatters_pre_commit_hooks.utils import run_command
 
@@ -31,9 +33,17 @@ def _download_ktlint_formatter_jar(version: str) -> str:  # pragma: no cover
 
 
 def _download_ktfmt_formatter_jar(version: str) -> str:  # pragma: no cover
-    url = "https://repo1.maven.org/maven2/com/facebook/ktfmt/{version}/ktfmt-{version}-jar-with-dependencies.jar".format(
-        version=version,
-    )
+    major, minor = map(int, version.split("."))
+    # In version 0.55, ktfmt change the naming of the far jar from `-jar-with-dependencies.jar` to `-with-dependencies.jar`.
+    if Version(version) < Version("0.55"):
+        url = "https://repo1.maven.org/maven2/com/facebook/ktfmt/{version}/ktfmt-{version}-jar-with-dependencies.jar".format(
+            version=version,
+        )
+    else:
+        url = "https://repo1.maven.org/maven2/com/facebook/ktfmt/{version}/ktfmt-{version}-with-dependencies.jar".format(
+            version=version,
+        )
+
     try:
         return download_url(url)
     except:  # noqa: E722 (allow usage of bare 'except')
@@ -65,10 +75,22 @@ def pretty_format_kotlin(argv: typing.Optional[typing.List[str]] = None) -> int:
         help="KTLint version to use (default %(default)s)",
     )
     parser.add_argument(
+        "--ktlint-jar",
+        dest="ktlint_jar",
+        default=None,
+        help="KTLint jar to use (instead of downloading)",
+    )
+    parser.add_argument(
         "--ktfmt-version",
         dest="kftmt_version",
         default=_get_default_version("ktfmt"),
         help="ktfmt version to use (default %(default)s)",
+    )
+    parser.add_argument(
+        "--ktfmt-jar",
+        dest="ktfmt_jar",
+        default=None,
+        help="ktfmt jar to use (instead of downloading)",
     )
     parser.add_argument(
         "--ktfmt",
@@ -77,21 +99,33 @@ def pretty_format_kotlin(argv: typing.Optional[typing.List[str]] = None) -> int:
         help="Use ktfmt",
     )
     parser.add_argument(
+        "--formatter-jar-checksum",
+        dest="formatter_jar_checksum",
+        default=None,
+        help="The SHA256 checksum of the jar",
+    )
+    parser.add_argument(
         "--ktfmt-style",
-        choices=["dropbox", "google", "kotlinlang"],
+        choices=["google", "kotlinlang"],
         dest="ktfmt_style",
         help="Which style to use",
     )
     parser.add_argument("filenames", nargs="*", help="Filenames to fix")
     args = parser.parse_args(argv)
     if args.ktfmt:
-        return run_ktfmt(args.kftmt_version, args.filenames, args.ktfmt_style, args.autofix)
+        jar = args.ktfmt_jar or _download_ktfmt_formatter_jar(args.kftmt_version)
+        return run_ktfmt(jar, args.formatter_jar_checksum, args.filenames, args.ktfmt_style, args.autofix)
     else:
-        return run_ktlint(args.ktlint_version, args.filenames, args.autofix)
+        jar = args.ktlint_jar or _download_ktlint_formatter_jar(args.ktlint_version)
+        return run_ktlint(jar, args.formatter_jar_checksum, args.filenames, args.autofix)
 
 
-def run_ktfmt(ktfmt_version: str, filenames: typing.Iterable[str], ktfmt_style: typing.Optional[str], autofix: bool) -> int:
-    jar = _download_ktfmt_formatter_jar(ktfmt_version)
+def run_ktfmt(
+    jar: str, checksum: typing.Optional[str], filenames: typing.Iterable[str], ktfmt_style: typing.Optional[str], autofix: bool
+) -> int:
+    if checksum and not does_checksum_match(jar, checksum):
+        return 1
+
     ktfmt_args = ["--set-exit-if-changed"]
     if ktfmt_style is not None:
         ktfmt_args.append(f"--{ktfmt_style}-style")
@@ -108,8 +142,10 @@ def run_ktfmt(ktfmt_version: str, filenames: typing.Iterable[str], ktfmt_style: 
     return return_code
 
 
-def run_ktlint(ktlint_version: str, filenames: typing.Iterable[str], autofix: bool):
-    ktlint_jar = _download_ktlint_formatter_jar(ktlint_version)
+def run_ktlint(jar: str, checksum: typing.Optional[str], filenames: typing.Iterable[str], autofix: bool):
+    if checksum and not does_checksum_match(jar, checksum):
+        return 1
+
     jvm_args = ["--add-opens", "java.base/java.lang=ALL-UNNAMED"]
 
     # ktlint does not return exit-code!=0 if we're formatting them.
@@ -123,7 +159,7 @@ def run_ktlint(ktlint_version: str, filenames: typing.Iterable[str], autofix: bo
         "java",
         *jvm_args,
         "-jar",
-        ktlint_jar,
+        jar,
         "--log-level",
         "none",
         "--reporter=json",
@@ -142,7 +178,7 @@ def run_ktlint(ktlint_version: str, filenames: typing.Iterable[str], autofix: bo
                 "java",
                 *jvm_args,
                 "-jar",
-                ktlint_jar,
+                jar,
                 "--log-level",
                 "none",
                 "--relative",

@@ -1,6 +1,48 @@
 Changelog
 =========
 
+2.16.0 (2026-01-11)
+-------------------
+- Drop Python 3.8 support, add Python 3.11, 3.13 and 3.14 support
+- Update GoogleJavaFormatter to 1.33.0
+- Update ktfmt to version 0.61
+- Update ktlint to version 1.8.0
+- Update palantir to version 2.83.0
+- [internal] Add Dependabot configuration for automated dependency updates (GitHub Actions and pip)
+- [internal] Add auto-merge workflow for Dependabot PRs
+- [internal] Update pre-commit hooks, github actions, tox and mypy configurations
+- [internal] Apply pyupgrade modernizations (remove encoding pragmas, use modern Python syntax)
+
+2.15.0 (2025-06-25)
+-------------------
+- Update GoogleJavaFormatter to 1.27.0
+- Update ktfmt to version 0.55
+- Update ktlint to version 1.6.0
+- Update palantir to version 2.67.0
+- Enhance documentation to highlight that TOML formatting might be removing comments. [PR #249](https://github.com/macisamuele/language-formatters-pre-commit-hooks/pull/249) - [@maresb](https://github.com/maresb) - [@corneliusroemer](httos://github.com/corneliusroemer)
+- Improve `pretty-format-rust` to better manage workspaces [PR #263](https://github.com/macisamuele/language-formatters-pre-commit-hooks/pull/263) - [@GUIpsp](https://githib.com/GUIpsp)
+
+2.14.0 (2024-07-14)
+-------------------
+- Update GoogleJavaFormatter to 1.22.0
+- Update ktfmt to version 0.51
+  **NOTE**: This updates removes dropbbox style formatting ([here](https://github.com/macisamuele/language-formatters-pre-commit-hooks/pull/235/commits/0ba8757d94104c62f2431160f3316e51203bd60d)).
+- Update KTLint to version 1.3.1
+- [Kotlin] Improved support for ktfmt - [PR #224](https://github.com/macisamuele/language-formatters-pre-commit-hooks/pull/224) - [@mxr](https://github.com/mxr)
+- [Java/Kotlin] Enable checksum verification of download artifacts - [PR #222](https://github.com/macisamuele/language-formatters-pre-commit-hooks/pull/222) - [@mxr](https://github.com/mxr)
+- [Rust] Add support for non-root cargo projects - [PR #217](https://github.com/macisamuele/language-formatters-pre-commit-hooks/pull/217) - [@AJIOB](https://github.com/AJIOB)
+- [Java] Add support for palantir-cli - [PR #213](https://github.com/macisamuele/language-formatters-pre-commit-hooks/pull/213) - [@eirnym](https://github.com/eirnym)
+- [internal] Update pre-commit hooks, github actions and removed deprecated usage of `pkg_resources`
+
+2.13.0 (2024-03-31)
+-------------------
+
+- Update KTLint to version 1.2.1
+- Update GoogleJavaFormatter to version 1.21.0
+- Ensure that TOML processing assumes that the files have UTF-8 encoding - [PR #208](https://github.com/macisamuele/language-formatters-pre-commit-hooks/pull/208) - [@Jayman2000](https://github.com/Jayman2000) thanks for your contribution
+- Pretty TOML allows for customisation of inline-comment-space - [PR #205](https://github.com/macisamuele/language-formatters-pre-commit-hooks/pull/205) - [@alkatar21](https://github.com/alkatar21) thanks for your contribution
+- [internal] Update pre-commit hooks, github actions
+
 2.12.0 (2023-12-19)
 -------------------
 

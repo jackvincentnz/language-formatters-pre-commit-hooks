@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import argparse
 import sys
 import typing
@@ -16,12 +15,18 @@ def pretty_format_rust(argv: typing.Optional[typing.List[str]] = None) -> int:
         dest="autofix",
         help="Automatically fixes encountered not-pretty-formatted files",
     )
+    parser.add_argument(
+        "--manifest-path",
+        dest="manifest_path",
+        help="The cargo manifest file location.",
+    )
 
     parser.add_argument("filenames", nargs="*", help="Filenames to fix")
     args = parser.parse_args(argv)
 
     # Check
-    status_code, output, _ = run_command("cargo", "fmt", "--", "--check", *args.filenames)
+    manifest_slug = [] if args.manifest_path is None else ["--manifest-path", args.manifest_path]
+    status_code, output, _ = run_command(*(["cargo", "fmt"] + manifest_slug + ["--", "--check", *args.filenames]))
     not_well_formatted_files = sorted(line.split()[2] for line in output.splitlines() if line.startswith("Diff in "))
     if not_well_formatted_files:
         print(
@@ -31,7 +36,7 @@ def pretty_format_rust(argv: typing.Optional[typing.List[str]] = None) -> int:
             ),
         )
         if args.autofix:
-            run_command("cargo", "fmt", "--", *not_well_formatted_files)
+            run_command(*(["cargo", "fmt"] + manifest_slug + ["--", *not_well_formatted_files]))
     elif status_code != 0:
         print("Detected not valid rust source files among {}".format("\n".join(sorted(args.filenames))))
 
